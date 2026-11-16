@@ -1,0 +1,48 @@
+# Registra la URL del webhook en Telegram y el menú de comandos del bot.
+# Se ejecuta a mano: Actions → "Registrar webhook de Telegram" → Run workflow.
+# Hay que correrlo una vez, y de nuevo solo si cambia la URL o el secreto.
+name: Registrar webhook de Telegram
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: URL pública del endpoint /webhook
+        required: true
+        default: https://bot-pdf-iota.vercel.app/webhook
+
+jobs:
+  set-webhook:
+    runs-on: ubuntu-latest
+    # Los valores llegan como variables de entorno, nunca interpolados en el
+    # script: así un input malicioso no puede inyectar comandos.
+    env:
+      TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+      WEBHOOK_URL: ${{ inputs.url }}
+    steps:
+      - name: Verificar que existen los secrets
+        run: |
+          [ -n "$TOKEN" ]  || { echo "::error::Falta el secret TELEGRAM_BOT_TOKEN"; exit 1; }
+          [ -n "$SECRET" ] || { echo "::error::Falta el secret TELEGRAM_WEBHOOK_SECRET"; exit 1; }
+
+      - name: setWebhook
+        run: |
+          curl -sS --fail-with-body "https://api.telegram.org/bot${TOKEN}/setWebhook" \
+            --data-urlencode "url=${WEBHOOK_URL}" \
+            --data-urlencode "secret_token=${SECRET}" \
+            --data-urlencode 'allowed_updates=["message"]' \
+            --data-urlencode "drop_pending_updates=true"
+          echo
+
+      - name: setMyCommands
+        run: |
+          curl -sS --fail-with-body "https://api.telegram.org/bot${TOKEN}/setMyCommands" \
+            -H "Content-Type: application/json" \
+            -d '{"commands":[{"command":"start","description":"Qué hace este bot"},{"command":"reset","description":"Borrar el historial de la conversación"}]}'
+          echo
+
+      - name: getWebhookInfo
+        run: |
+          curl -sS --fail-with-body "https://api.telegram.org/bot${TOKEN}/getWebhookInfo"
+          echo

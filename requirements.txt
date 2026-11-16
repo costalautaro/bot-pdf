@@ -1,3 +1,5 @@
 # Dependencias de runtime: Vercel instala SOLO este archivo.
 # Cada dependencia suma peso al bundle y tiempo al cold start: mantenelo mínimo.
 fastapi==0.163.1
+pydantic-settings==2.16.3
+httpx==0.28.1
