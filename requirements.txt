@@ -1,0 +1,3 @@
+# Dependencias de runtime: Vercel instala SOLO este archivo.
+# Cada dependencia suma peso al bundle y tiempo al cold start: mantenelo mínimo.
+fastapi==0.163.1

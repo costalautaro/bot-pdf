@@ -1,0 +1,4 @@
+# Dependencias de desarrollo y CI (no se despliegan a Vercel).
+-r requirements.txt
+pytest==9.2.0
+httpx==0.28.1  # lo usa fastapi.testclient
